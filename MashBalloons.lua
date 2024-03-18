@@ -13,33 +13,7 @@ getgenv().autoBalloonConfig = {
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/waitForGameLoad.lua"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/cpuReducer.lua"))()
-workspace.Map.DescendantAdded:Connect(function()
-    for i, v in pairs(workspace.Map:GetChildren()) do
-        if v:FindFirstChild("PARTS") then
-            v:FindFirstChild("PARTS"):Destroy()
-        end
-        wait()
-        if v:FindFirstChild("PARTS_LOD") then
-            a = v.PARTS_LOD:FindFirstChild("WALLS")
-            if a then
-                a:Destroy()
-            end
-        end
-        wait()
-        if v:FindFirstChild("INTERACT") then
-            if v.INTERACT:FindFirstChild("Upgrades") then
-            v.INTERACT:FindFirstChild("Upgrades"):Destroy()
-            end
-            if v.INTERACT:FindFirstChild("ZoneQuest") then
-            v.INTERACT:FindFirstChild("ZoneQuest"):Destroy()
-            end
-        end
-        wait()
-    end
-end)
 loadstring(game:HttpGet("https://raw.githubusercontent.com/fdvll/pet-simulator-99/main/antiStaff.lua"))()
-
-
 
 for _, lootbag in pairs(game:GetService("Workspace").__THINGS:FindFirstChild("Lootbags"):GetChildren()) do
     if lootbag then
@@ -68,11 +42,14 @@ end)
 print("boga boga")
 task.wait(getgenv().autoBalloonConfig.START_DELAY)
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = game:GetService("Players").LocalPlayer
+
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+-- Ensure 'Highlight' exists before attempting to destroy it
 local highlight = Workspace.__THINGS.Breakables:FindFirstChild("Highlight")
 if highlight then
     highlight:Destroy()
@@ -138,18 +115,15 @@ while getgenv().autoBalloon do
     local originalPosition = LocalPlayer.Character.HumanoidRootPart.CFrame
 
     LocalPlayer.Character.HumanoidRootPart.Anchored = true
-    ReplicatedStorage.Network.Slingshot_Toggle:InvokeServer()
     for balloonId, balloonData in pairs(balloonIds) do
         LocalPlayer.Character.HumanoidRootPart.Anchored = true
         print("Popping balloon")
 
         local balloonPosition = balloonData.Position
 
-                task.wait()
-        if not LocalPlayer.PlayerGui._MISC.Slingshot.Close.Visible then
-            ReplicatedStorage.Network.Slingshot_Toggle:InvokeServer()
-            task.wait()
-        end
+        ReplicatedStorage.Network.Slingshot_Toggle:InvokeServer()
+
+        task.wait()
 
         LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(balloonPosition.X, balloonPosition.Y + 30, balloonPosition.Z)
 
@@ -163,8 +137,6 @@ while getgenv().autoBalloon do
         }
 
         ReplicatedStorage.Network.Slingshot_FireProjectile:InvokeServer(unpack(args))
-        task.wait()
-        ReplicatedStorage.Network.Slingshot_FireProjectile:InvokeServer(unpack(args))
 
         task.wait(0.1)
 
@@ -177,6 +149,8 @@ while getgenv().autoBalloon do
         LocalPlayer.Character.HumanoidRootPart.Anchored = false
 
         task.wait(getgenv().autoBalloonConfig.WAIT_FOR_BREAK)
+
+        ReplicatedStorage.Network.Slingshot_Unequip:InvokeServer()
 
         print("Popped balloon, waiting " .. tostring(getgenv().autoBalloonConfig.BALLOON_DELAY) .. " seconds")
         task.wait(getgenv().autoBalloonConfig.BALLOON_DELAY)
