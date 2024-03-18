@@ -3,7 +3,6 @@
 getgenv().autoBalloon = true
 
 getgenv().autoBalloonConfig = {
-
     START_DELAY = 1, -- delay before starting
     SERVER_HOP = true, -- server hop after popping balloons
     SERVER_HOP_DELAY = 0, -- delay before server hopping
