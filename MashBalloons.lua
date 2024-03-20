@@ -1,4 +1,5 @@
 
+
 if getgenv().MoneyPrinter.disableRender then
     game:GetService("RunService"):Set3dRenderingEnabled(false)
 end
