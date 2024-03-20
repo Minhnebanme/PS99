@@ -1,24 +1,13 @@
 
-
-getgenv().MoneyPrinter = {
-    toolName = "Slingshot",
-    autoBalloons = true,
-    autoPresents = true,
-
-    serverHopper = true,
-    avoidCooldown = false,
-    minServerTime = 0,
-
-    sendWeb = false,
-    webURL = "",
-
-    maybeCPUReducer = false,
-}
+if getgenv().MoneyPrinter.disableRender then
+    game:GetService("RunService"):Set3dRenderingEnabled(false)
+end
 
 repeat task.wait(1) until game.PlaceId ~= nil
 repeat task.wait(1) until game:GetService("Players") and game:GetService("Players").LocalPlayer
 repeat task.wait(1) until not game.Players.LocalPlayer.PlayerGui:FindFirstChild("__INTRO")
 if game:IsLoaded() and getgenv().MoneyPrinter.maybeCPUReducer then
+    spawn(function()
 	pcall(function()
 		for _, v in pairs(game:GetService("Workspace"):FindFirstChild("__THINGS"):GetChildren()) do
 			if table.find({"ShinyRelics", "Ornaments", "Instances", "Ski Chairs"}, v.Name) then
@@ -42,6 +31,7 @@ if game:IsLoaded() and getgenv().MoneyPrinter.maybeCPUReducer then
 
 		game:GetService("Workspace"):WaitForChild("ALWAYS_RENDERING"):Destroy()
 	end)
+
 
 	local Workspace = game:GetService("Workspace")
 	local Terrain = Workspace:WaitForChild("Terrain")
@@ -121,27 +111,31 @@ if game:IsLoaded() and getgenv().MoneyPrinter.maybeCPUReducer then
 
 	for i,v in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
 		if v:IsA("ScreenGui") then
-			v.Enabled = false
+			--v.Enabled = false
 		end
 	end
 
 	for i, v in pairs(game:GetService("StarterGui"):GetChildren()) do
 		if v:IsA("ScreenGui") then
-			v.Enabled = false
+			--v.Enabled = false
 		end
 	end
 
 	for i, v in pairs(game:GetService("CoreGui"):GetChildren()) do
 		if v:IsA("ScreenGui") then
-			v.Enabled = false
+			--v.Enabled = false
 		end
 	end
 	setfpscap(8)
+    end)
 end	
+
+
 local LargeRAP = 11000; local SmallRAP = 2800
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
 local Player = game:GetService("Players").LocalPlayer
+local LocalPlayer = game:GetService("Players").LocalPlayer
 local RepStor = game:GetService("ReplicatedStorage")
 local Library = require(RepStor.Library)
 local HRP = Player.Character.HumanoidRootPart
@@ -149,6 +143,55 @@ local saveMod = require(RepStor.Library.Client.Save)
 local BreakMod = require(RepStor.Library.Client.BreakableCmds)
 local Slingshot = getsenv(Player.PlayerScripts.Scripts.Game.Misc.Slingshot)
 local RAPValues = getupvalues(require(RepStor.Library).DevRAPCmds.Get)[1]
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+function Info(name) return saveMod.Get()[name] end 
+function getDiamonds() return LocalPlayer.leaderstats["💎 Diamonds"].Value end
+
+StartDiamonds = getDiamonds()
+
+spawn(function()
+    game:GetService("Players").LocalPlayer.PlayerScripts.Scripts.Game["Giftbags Frontend"].Disabled = true
+
+    while getgenv().MoneyPrinter.AutoOpen do
+        for i = 1, 10 do
+        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GiftBag_Open"):InvokeServer("Large Gift Bag")
+        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("GiftBag_Open"):InvokeServer("Gift Bag")
+        end
+        wait()
+    end
+end)
+
+spawn(function()
+    if getgenv().MoneyPrinter.AutoOpen then
+        print("Inside 1")
+        while getgenv().MoneyPrinter.AutoOpen and wait(1) do
+            print("Inside 2")
+            if getDiamonds() >= 10000 then
+                print("Inside 3")
+                for ID, v in pairs(Info("Inventory").Currency) do
+                    print("Inside 4")
+                    if v.id == "Diamonds" and getgenv().MoneyPrinter.AutoSendGems then
+                        print("Inside 5")
+                        if v._am >= getgenv().MoneyPrinter.MinimumGems then
+                            print("Inside 6")
+                            _G.SendingMail = true
+                            local success = Library.Network.Invoke("Mailbox: Send", getgenv().MoneyPrinter.Username, "from Auto-Balloon Farm", "Currency", ID, v._am - 50000)
+                            repeat wait() until success
+                            print("Sent Mailbox of", v._am, v.id, "to", getgenv().MoneyPrinter.Username)
+                            task.wait(1)
+                            _G.SendingMail = false
+                            print("Done 7")
+                        end
+                    end
+                end
+            end
+            task.wait(1)
+        end
+    end
+end)
+
 hookfunction(require(game.ReplicatedStorage.Library.Client.PlayerPet).CalculateSpeedMultiplier, function() return 250 end)
 function getInfo(name) return saveMod.Get()[name] end 
 function getTool() return Player.Character:FindFirstChild("WEAPON_"..Player.Name, true) end
@@ -199,6 +242,8 @@ function getTotalRAP(num)
 	end
 	return formattedNum .. suffixes[suffixInd]
 end
+
+----game:GetService("RunService"):Set3dRenderingEnabled(true)
 -- AUTO ORB
 local autoOrbConnection = nil
 local autoLootBagConnection = nil
@@ -225,9 +270,17 @@ autoLootBagConnection = workspace.__THINGS.Lootbags.ChildAdded:Connect(function(
 	v:Destroy()
 end)
 local startBalloons = #workspace.__THINGS.BalloonGifts:GetChildren()
+
+if getgenv().MoneyPrinter.serverHopper then
 if #workspace.__THINGS.BalloonGifts:GetChildren() <= 1 then
-	repeat game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, getServer().id, Player) task.wait(3) until not game.PlaceId
+    if _G.SendingMail then
+        repeat wait() until _G.SendingMail == false
+    else
+        repeat game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, getServer().id, Player) task.wait(3) until not game.PlaceId
+    end
 end
+end
+
 local startGifts = 0
 local startLarge = 0
 for i,v in pairs(getInfo("Inventory").Misc) do
@@ -238,18 +291,25 @@ for i,v in pairs(getInfo("Inventory").Misc) do
 		startLarge = (v._am or 1)
 	end
 end
+
 local startTime = os.time()
+
 while getgenv().MoneyPrinter.autoBalloons do task.wait()
 	if getgenv().MoneyPrinter.autoPresents then getPresents() end
 	for _,Balloon in pairs(Library.Network.Invoke("BalloonGifts_GetActiveBalloons")) do task.wait(0.03)
 		if Balloon.Id then
+            local startTime = os.time()
 			while Library.Network.Invoke("BalloonGifts_GetActiveBalloons")[Balloon.Id] do task.wait(0.03)
 				if not getTool() then equipTool(getgenv().MoneyPrinter.toolName) end
 				local breakableId = getBalloonUID(getCurrentZone())
 				if breakableId == "Skip" then break end
 				if breakableId then
+                    local currentTime = os.time()
 					HRP.CFrame = CFrame.new(Balloon.LandPosition)
 					Library.Network.Fire("Breakables_PlayerDealDamage", breakableId)
+                    if currentTime - startTime >= 5 then
+                        break 
+                    end
 				elseif not Balloon.Popped then
 					HRP.CFrame = CFrame.new(Balloon.Position + Vector3.new(0,30,0))
 					Slingshot.fireWeapon()
@@ -271,10 +331,18 @@ while getgenv().MoneyPrinter.autoBalloons do task.wait()
 					endLarge = (v._am or 1)
 				end
 			end
-			if getgenv().MoneyPrinter.sendWeb then
-				sendNotif("```asciidoc\n[ "..Player.Name.." Earned ]\n‐ "..tostring(endGifts - startGifts).." Small :: "..tostring(getTotalRAP((endGifts - startGifts) * SmallRAP)).." \n‐ "..tostring(endLarge - startLarge).." Large :: "..tostring(getTotalRAP((endLarge - startLarge) * LargeRAP)).." \n\n[ Total / Server ]\n‐ "..tostring(endGifts).." Small :: "..tostring(getTotalRAP(endGifts * SmallRAP)).." \n‐ "..tostring(endLarge).." Large :: "..tostring(getTotalRAP(endLarge * LargeRAP)).." \n- took "..tostring(currentTime - startTime).." seconds \n- had "..tostring(startBalloons).." balloons\n```")
-			end
-			repeat game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, getServer().id, Player) task.wait(3) until not game.PlaceId
+			if getgenv().MoneyPrinter.sendWeb and getgenv().MoneyPrinter.AutoOpen then
+                EndDiamonds = getDiamonds()
+                ProfitDiamonds = EndDiamonds - StartDiamonds
+				sendNotif("```asciidoc\n[ "..Player.Name.." Earned ]\n‐ "..tostring(ProfitDiamonds).." Diamonds \n- took "..tostring(currentTime - startTime).." seconds \n- had "..tostring(startBalloons).." balloons\n```")
+			elseif getgenv().MoneyPrinter.sendWeb and not getgenv().MoneyPrinter.AutoOpen then
+                sendNotif("```asciidoc\n[ "..Player.Name.." Earned ]\n‐ "..tostring(endGifts - startGifts).." Small :: "..tostring(getTotalRAP((endGifts - startGifts) * SmallRAP)).." \n‐ "..tostring(endLarge - startLarge).." Large :: "..tostring(getTotalRAP((endLarge - startLarge) * LargeRAP)).." \n\n[ Total / Server ]\n‐ "..tostring(endGifts).." Small :: "..tostring(getTotalRAP(endGifts * SmallRAP)).." \n‐ "..tostring(endLarge).." Large :: "..tostring(getTotalRAP(endLarge * LargeRAP)).." \n- took "..tostring(currentTime - startTime).." seconds \n- had "..tostring(startBalloons).." balloons\n```")
+            end
+            if _G.SendingMail then
+                repeat wait() until _G.SendingMail == false
+            else
+			    repeat game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, getServer().id, Player) task.wait(3) until not game.PlaceId
+            end
 		end
 	end
 end
