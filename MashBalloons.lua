@@ -1,4 +1,4 @@
-
+setfpscap(30)
 
 getgenv().autoBalloon = true
 
